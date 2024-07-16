@@ -1,0 +1,62 @@
+services:
+  frontend:
+    build: EyesClinicSystem-frontend
+    ports:
+      - 3000:3000
+    expose: 
+      - 3000
+    stdin_open: true
+    volumes:
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - react-express
+    depends_on:
+      - backend
+    environment:
+      REACT_APP_HOMEPAGE: 'http://backend:8080'
+      REACT_APP_API: 'http://backend:8080/api'
+      REACT_APP_SOCKET_API: 'http://backend:8080'
+      REACT_APP_BASE_DOMAIN: 'http://backend:8080'
+      BASE_DOMAIN: 'http://backend:8080/'
+
+  backend:
+    build: EyesClinicSystem-backend
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - mongo
+    environment:
+      DATABASE: 'mongodb://mongo:27017/eyesclinic'
+      DATABASE_USERNAME: 'mongadmin'
+      DATABASE_PASSWORD: 'P@ssw0rd'
+    networks:
+      - express-mongo
+      - react-express
+    ports:
+      - 8080:8080
+    expose: 
+      - 8080
+  
+  mongo:
+    image: mongo:7.0
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongadmin
+      MONGO_INITDB_ROOT_PASSWORD: P@ssw0rd
+      MONGO_INITDB_DATABASE: eyesclinic
+
+    networks:
+      - express-mongo
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo_data:/data/db
+
+networks:
+  react-express:
+  express-mongo:
+
+volumes:
+  mongo_data:
+    driver: local
